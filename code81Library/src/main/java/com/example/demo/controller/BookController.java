@@ -25,12 +25,20 @@ import com.example.demo.repository.BookRepository;
 import com.example.demo.repository.CategoryRepository;
 import com.example.demo.repository.PublisherRepository;
 import com.example.demo.service.BookService;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.http.HttpStatus;
 
 
 @RestController
 @RequestMapping("/api/books")
+@Tag(name = "Books", description = "Endpoints for managing books in the library")
+@SecurityRequirement(name = "bearerAuth")
+
 public class BookController {
 
     private final BookService bookService;
@@ -52,6 +60,7 @@ public class BookController {
     			this.bookRepository = bookRepository;
     	}
 
+    @Operation(summary = "Get all books", description = "Returns a list of all books in the system")   
     @GetMapping	
     public List<BookResponseDTO> getAllBooks() {
         List<Book> books = bookService.getAllBooks();
@@ -80,6 +89,7 @@ public class BookController {
         }).toList();
     }
     @PreAuthorize("permitAll()")
+    @Operation(summary = "Get book by ID" , description = "Returns a single book by its ID")
     @GetMapping("/{id}")
     public ResponseEntity<BookResponseDTO> getBook(@PathVariable Long id) {
         Book book = bookService.getBookById(id)
@@ -106,7 +116,7 @@ public class BookController {
         return ResponseEntity.ok(dto);
     }
 
-
+    @Operation(summary = "Create a new book", description = "Adds a new book to the database")
     @PostMapping
     public ResponseEntity<BookResponseDTO> createBook(@RequestBody BookRequestDTO requestDTO) {
         Book book = new Book();
@@ -150,7 +160,8 @@ public class BookController {
 
         return ResponseEntity.ok(dto);
     }
-
+    
+    @Operation(summary = "Update a book", description = "Updates details of an existing book")
     @PutMapping("/{id}")
     public ResponseEntity<BookResponseDTO> updateBook(@PathVariable Long id, @RequestBody BookRequestDTO requestDTO) {
         Book book = bookService.getBookById(id)
@@ -197,6 +208,7 @@ public class BookController {
         return ResponseEntity.ok(dto);
     }
     @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Delete a book", description = "Deletes a book by its ID")
     @DeleteMapping("/{id}")
     public void deleteBook(@PathVariable Long id) {
         bookService.deleteBook(id);

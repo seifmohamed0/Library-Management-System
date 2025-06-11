@@ -1,6 +1,5 @@
 package com.example.demo.security;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -19,16 +18,22 @@ import lombok.RequiredArgsConstructor;
 
 @Configuration
 @EnableMethodSecurity
-@RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final CustomUserDetailsService userDetailsService;
-    private final JwtAuthFilter jwtAuthFilter;
-
-    @Autowired
+    private final CustomUserDetailsService userDetailsService ;
+    private final JwtAuthFilter jwtAuthFilter ;
     public SecurityConfig(CustomUserDetailsService userDetailsService, JwtAuthFilter jwtAuthFilter) {
         this.userDetailsService = userDetailsService;
         this.jwtAuthFilter = jwtAuthFilter;
+    }
+    @Bean
+    @Order(0)
+    public SecurityFilterChain swaggerFilterChain(HttpSecurity http) throws Exception {
+        http
+            .securityMatcher("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html")
+            .csrf(csrf -> csrf.disable())
+            .authorizeHttpRequests(auth -> auth.anyRequest().permitAll());
+        return http.build();
     }
 
     @Bean
@@ -68,21 +73,6 @@ public class SecurityConfig {
         return http.build();
     }
 
-    /*@Bean
-    @Order(4)
-    public SecurityFilterChain booksFilterChain(HttpSecurity http) throws Exception {
-        http
-            .csrf(csrf -> csrf.disable())
-            .securityMatcher("/api/books/**")
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers(HttpMethod.GET, "/api/books/**").permitAll()    
-                .anyRequest().hasRole("ADMIN")                                  
-            )
-            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .userDetailsService(userDetailsService)
-            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
-        return http.build();
-    }*/
     @Bean
     @Order(4)
     public SecurityFilterChain booksFilterChain(HttpSecurity http) throws Exception {
@@ -93,6 +83,7 @@ public class SecurityConfig {
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
         return http.build();
     }
+
     @Bean
     @Order(5)
     public SecurityFilterChain borrowFilterChain(HttpSecurity http) throws Exception {
@@ -106,27 +97,6 @@ public class SecurityConfig {
         return http.build();
     }
 
-  /*  @Bean
-    @Order(8)
-    public SecurityFilterChain defaultFilterChain(HttpSecurity http) throws Exception {
-        http
-            .csrf(csrf -> csrf.disable())
-            .authorizeHttpRequests(auth -> auth.anyRequest().authenticated())
-            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .userDetailsService(userDetailsService)
-            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
-        return http.build();
-    }*/
-    @Bean
-    @Order(8)
-    public SecurityFilterChain defaultFilterChain(HttpSecurity http) throws Exception {
-        http
-            .csrf(csrf -> csrf.disable())
-            .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
-            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
-        return http.build();
-    }
-
     @Bean
     @Order(6)
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
@@ -137,5 +107,24 @@ public class SecurityConfig {
     @Order(7)
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    @Order(8)
+    public SecurityFilterChain defaultFilterChain(HttpSecurity http) throws Exception {
+        http
+            .csrf(csrf -> csrf.disable())
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers(
+                    "/v3/api-docs/**",
+                    "/swagger-ui/**",
+                    "/swagger-ui.html",
+                    "/swagger-resources/**",
+                    "/webjars/**"
+                ).permitAll()
+                .anyRequest().permitAll()
+            )
+            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+        return http.build();
     }
 }
