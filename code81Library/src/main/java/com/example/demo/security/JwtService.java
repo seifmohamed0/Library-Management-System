@@ -7,6 +7,7 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.function.Function;
 
@@ -21,23 +22,22 @@ public class JwtService {
     }
 
     public String generateToken(User user) {
-        Map<String, Object> claims = new HashMap<>();
-
-        // هنا بنحول Role واحدة إلى List فيها "ROLE_" مضاف
-        List<String> roles = List.of("ROLE_" + user.getRole().name());
-        claims.put("roles", roles);
-
-        return createToken(claims, user.getUsername());
+        return Jwts.builder()
+                .setSubject(user.getUsername())
+                .claim("roles", List.of(user.getRole().name()))
+                .setIssuedAt(new Date(System.currentTimeMillis()))
+                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60)) 
+                .signWith(SignatureAlgorithm.HS256, SECRET_KEY.getBytes(StandardCharsets.UTF_8))
+                .compact();
     }
 
-    @SuppressWarnings("deprecation")
-	private String createToken(Map<String, Object> claims, String subject) {
+    private String createToken(Map<String, Object> claims, String subject) {
         return Jwts.builder()
                 .setClaims(claims)
                 .setSubject(subject)
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 10)) 
-                .signWith(SignatureAlgorithm.HS256, SECRET_KEY.getBytes())
+                .signWith(SignatureAlgorithm.HS256, SECRET_KEY.getBytes(StandardCharsets.UTF_8))
                 .compact();
     }
 
@@ -55,9 +55,9 @@ public class JwtService {
         return claimsResolver.apply(claims);
     }
 
-    private Claims extractAllClaims(String token) {
+    public Claims extractAllClaims(String token) {
         return Jwts.parser()
-                .setSigningKey(SECRET_KEY.getBytes())
+                .setSigningKey(SECRET_KEY.getBytes(StandardCharsets.UTF_8))
                 .parseClaimsJws(token)
                 .getBody();
     }

@@ -4,6 +4,8 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -37,6 +39,7 @@ public class UserController {
     @Operation(summary = "Get all users", description = "Returns a list of all users (admin only)")
     @PreAuthorize("hasRole('ADMIN')")
     public List<User> getAllUsers() {
+    	Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         return userService.getAllUsers();
     }
 
@@ -62,6 +65,7 @@ public class UserController {
     
     @Operation(summary = "Delete user", description = "Deletes a user by ID")
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public void deleteUser(@PathVariable Long id) {
         userService.deleteUser(id);
     }

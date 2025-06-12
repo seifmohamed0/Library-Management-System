@@ -27,28 +27,28 @@ public class BorrowingTransactionController {
 
     @GetMapping
     @Operation(summary = "Get all transactions", description = "Returns all borrow/return transactions")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('LIBRARIAN')")
     public List<BorrowingTransaction> getAllTransactions() {
         return borrowService.getAllTransactions();
     }
 
     @GetMapping("/{id}")
     @Operation(summary = "Get transaction by ID", description = "Returns a specific transaction by ID")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('LIBRARIAN')")
     public Optional<BorrowingTransaction> getTransactionById(@PathVariable Long id) {
         return borrowService.getTransactionById(id);
     }
 
     @PostMapping
     @Operation(summary = "Borrow a book", description = "Creates a new borrowing transaction")
-    @PreAuthorize("hasRole('USER')")
+    @PreAuthorize("hasRole('LIBRARIAN')")
     public BorrowingTransaction borrowBook(@RequestBody BorrowingTransaction transaction) {
         return borrowService.borrowBook(transaction);
     }
 
     @PutMapping("/return/{id}")
     @Operation(summary = "Return a book", description = "Marks a borrowed book as returned")
-    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
+    @PreAuthorize("hasRole('LIBRARIAN') or hasRole('ADMIN')")
     public BorrowingTransaction returnBook(@PathVariable Long id) {
         return borrowService.returnBook(id);
     }
